@@ -2,7 +2,9 @@ namespace server.Models;
 
 public class Appointment
 {
-    public string appointment_id { get; set; } = null!; // Primary Key
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
+    public string? appointment_id { get; set; }
     public DateTime? created_at { get; set; }
     public string? last_name { get; set; }
     public string? first_name { get; set; }
