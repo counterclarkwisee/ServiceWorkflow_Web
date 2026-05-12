@@ -35,5 +35,5 @@ public class Appointment
     public DateTime? last_modified_at { get; set; }
     public string? last_modified_by { get; set; }
     public string? arrival_status { get; set; } 
-    public string? preservice_status { get; set; } 
+    public ChecklisterLog? ChecklisterLog { get; set; }
 }

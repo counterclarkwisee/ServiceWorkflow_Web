@@ -21,13 +21,15 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 // 4. CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp",
-        policy => policy.WithOrigins("http://localhost:3000")
-                        .AllowAnyMethod()
-                        .AllowAnyHeader());
+    options.AddDefaultPolicy(policy => {
+            policy.WithOrigins("http://localhost:3000")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
 });
 
 var app = builder.Build();
+app.UseCors();
 
 // 5. Middleware Pipeline
 if (app.Environment.IsDevelopment())

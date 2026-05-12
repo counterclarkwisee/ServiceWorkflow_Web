@@ -11,6 +11,7 @@ namespace server.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
+        public DbSet<ChecklisterLog> ChecklisterLogs { get; set; }
         
         // CRITICAL: This must be named 'Services' to match the Repository call
         public DbSet<Service> Services { get; set; } 
@@ -24,6 +25,7 @@ namespace server.Data
 
             // FIX: Match the property name to 'service_id' instead of 'id'
             modelBuilder.Entity<Service>().ToTable("services").HasKey(s => s.service_id);
+            modelBuilder.Entity<ChecklisterLog>().ToTable("checklister_logs").HasKey(c => c.checklister_logs_id);
         }
     }
 }
