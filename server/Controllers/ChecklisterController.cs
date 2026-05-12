@@ -8,31 +8,23 @@ namespace server.Controllers;
 [Route("api/[controller]")]
 public class ChecklisterController : ControllerBase
 {
-    private readonly IAppointmentRepository _appointmentRepository;
+    private readonly IAppointmentRepository _repo;
 
-    public ChecklisterController(IAppointmentRepository appointmentRepository)
-    {
-        _appointmentRepository = appointmentRepository;
-    }
+    public ChecklisterController(IAppointmentRepository repo) => _repo = repo;
 
-    // GET: api/checklister/queue
     [HttpGet("queue")]
-    public async Task<IActionResult> GetChecklistQueue()
+    public async Task<IActionResult> GetQueue()
     {
-        var appointments = await _appointmentRepository.GetAllAppointmentsAsync();
+        var all = await _repo.GetAllAppointmentsAsync();
         // Workflow: Checklister acts on vehicles marked as ARRIVED
-        var queue = appointments.Where(a => a.status == "ARRIVED");
-        return Ok(queue);
+        return Ok(all.Where(a => a.status == "ARRIVED"));
     }
 
-    // PATCH: api/checklister/{id}/start
     [HttpPatch("{id}/start")]
-    public async Task<IActionResult> StartChecklisting(string id)
+    public async Task<IActionResult> StartChecklist(string id)
     {
-        // Terminal Status: PRE-SERVICE CHECKLISTING
-        var success = await _appointmentRepository.UpdateAppointmentStatusAsync(id, "PRE-SERVICE CHECKLISTING");
-        if (!success) return NotFound();
-
-        return Ok(new { message = "Vehicle moved to Pre-Service Checklisting" });
+        // Transition to terminal status: PRE-SERVICE CHECKLISTING
+        await _repo.UpdateAppointmentStatusAsync(id, "PRE-SERVICE CHECKLISTING");
+        return Ok();
     }
 }

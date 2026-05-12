@@ -119,3 +119,5 @@ C:\Users\clim\Documents\ServiceWorkflow_Web\server\obj\Debug\net10.0\refint\serv
 C:\Users\clim\Documents\ServiceWorkflow_Web\server\obj\Debug\net10.0\server.pdb
 C:\Users\clim\Documents\ServiceWorkflow_Web\server\obj\Debug\net10.0\server.genruntimeconfig.cache
 C:\Users\clim\Documents\ServiceWorkflow_Web\server\obj\Debug\net10.0\ref\server.dll
+C:\Users\clim\Documents\ServiceWorkflow_Web\server\bin\Debug\net10.0\package-lock.json
+C:\Users\clim\Documents\ServiceWorkflow_Web\server\bin\Debug\net10.0\package.json

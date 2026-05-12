@@ -10,5 +10,6 @@ public class Appointment
     public DateOnly? appointment_date { get; set; }
     public TimeOnly? scheduled_arrival_time { get; set; }
     public string? service_category { get; set; }
+    public string service_type { get; set; } // Add this line
     public string? status { get; set; }
 }
