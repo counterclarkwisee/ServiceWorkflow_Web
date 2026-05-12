@@ -1,6 +1,10 @@
 using Microsoft.AspNetCore.Mvc; // Fixes IActionResult, HttpGet, HttpPatch
 using server.Interfaces;      // Fixes IAppointmentRepository
 using server.Models;
+
+namespace server.Controllers;
+
+
 [ApiController]
 [Route("api/[controller]")]
 public class ReceptionController : ControllerBase

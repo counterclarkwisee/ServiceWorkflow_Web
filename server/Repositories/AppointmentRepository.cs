@@ -21,28 +21,30 @@ public class AppointmentRepository : IAppointmentRepository
             .ToListAsync();
     }
 
-    public async Task<string> CreateAppointmentWithServiceAsync(Appointment appointment, string serviceType)
+    public async Task<string> CreateAppointmentWithServiceAsync(Appointment appointment, string serviceName)
     {
         long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         string appointmentId = $"APT-{timestamp}-{new Random().Next(100, 999)}";
-        // Generate the Service ID string
         string serviceId = $"SVC-{timestamp}-{new Random().Next(1000, 9999)}";
 
+        // Data for the 'appointments' table
         appointment.appointment_id = appointmentId;
         appointment.created_at = DateTime.Now;
+        appointment.service_category = serviceName; // Matches appointments table
 
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             _context.Appointments.Add(appointment);
 
-            var serviceEntry = new ServiceEntry 
+            // Data for the 'services' table
+            var serviceRecord = new Service 
             { 
                 service_id = serviceId, 
                 appointment_id = appointmentId, 
-                service_type = serviceType 
+                service_type = serviceName // Matches services table
             };
-            _context.Services.Add(serviceEntry);
+            _context.Services.Add(serviceRecord);
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();

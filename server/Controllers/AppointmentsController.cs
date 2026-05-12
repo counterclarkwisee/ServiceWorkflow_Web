@@ -18,7 +18,8 @@ public class AppointmentsController : ControllerBase
     public async Task<IActionResult> CreateAppointment([FromBody] Appointment appointment)
     {
         appointment.status = "BOOKED";
-        var id = await _appointmentRepository.CreateAppointmentWithServiceAsync(appointment, appointment.service_type);
+        // Passing the category value from the frontend
+        var id = await _appointmentRepository.CreateAppointmentWithServiceAsync(appointment, appointment.service_category);
         return Ok(new { id, message = "Successfully Booked" });
     }
 }

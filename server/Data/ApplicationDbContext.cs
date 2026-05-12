@@ -13,7 +13,7 @@ namespace server.Data
         public DbSet<Appointment> Appointments { get; set; }
         
         // CRITICAL: This must be named 'Services' to match the Repository call
-        public DbSet<ServiceEntry> Services { get; set; } 
+        public DbSet<Service> Services { get; set; } 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,7 +23,7 @@ namespace server.Data
             modelBuilder.Entity<Appointment>().ToTable("appointments").HasKey(a => a.appointment_id);
 
             // FIX: Match the property name to 'service_id' instead of 'id'
-            modelBuilder.Entity<ServiceEntry>().ToTable("services").HasKey(s => s.service_id);
+            modelBuilder.Entity<Service>().ToTable("services").HasKey(s => s.service_id);
         }
     }
 }
