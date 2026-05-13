@@ -19,13 +19,11 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 
 // 4. CORS
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(policy => {
-            policy.WithOrigins("http://localhost:3000")
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        });
+builder.Services.AddCors(options => {
+    options.AddDefaultPolicy(policy => 
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader());
 });
 
 var app = builder.Build();

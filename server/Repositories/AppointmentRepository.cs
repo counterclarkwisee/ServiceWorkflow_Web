@@ -130,6 +130,42 @@ public class AppointmentRepository : IAppointmentRepository
 
         return await _context.SaveChangesAsync() > 0;
     }
+    public async Task<bool> StartSaReceivingAsync(string appointmentId)
+    {
+        var log = await _context.SaLogs
+            .FirstOrDefaultAsync(l => l.appointment_id == appointmentId);
+
+        if (log == null)
+        {
+            log = new SaLog
+            {
+                appointment_id = appointmentId,
+                receiving_status = "Started",
+                receiving_start = DateTime.Now
+            };
+            _context.SaLogs.Add(log);
+        }
+        else
+        {
+            log.receiving_status = "In-Progress";
+            log.receiving_start = DateTime.Now;
+        }
+
+        return await _context.SaveChangesAsync() > 0;
+    }
+
+    public async Task<bool> EndSaReceivingAsync(string appointmentId)
+    {
+        var log = await _context.SaLogs
+            .FirstOrDefaultAsync(l => l.appointment_id == appointmentId);
+
+        if (log == null) return false;
+
+        log.receiving_status = "Finished";
+        log.receiving_end = DateTime.Now;
+
+        return await _context.SaveChangesAsync() > 0;
+    }
 
     // These are duplicates of the "Log" versions above, 
     // but kept so your other controllers don't break.

@@ -13,4 +13,7 @@ public interface IAppointmentRepository
     Task<IEnumerable<Appointment>> GetChecklisterQueueAsync();
     Task<bool> StartPreServiceLogAsync(string id);
     Task<bool> EndPreServiceLogAsync(string id);
+    Task<bool> StartSaReceivingAsync(string appointmentId);
+    Task<bool> EndSaReceivingAsync(string appointmentId);
+    
 }

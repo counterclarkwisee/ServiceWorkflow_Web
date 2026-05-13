@@ -121,3 +121,4 @@ C:\Users\clim\Documents\ServiceWorkflow_Web\server\obj\Debug\net10.0\server.genr
 C:\Users\clim\Documents\ServiceWorkflow_Web\server\obj\Debug\net10.0\ref\server.dll
 C:\Users\clim\Documents\ServiceWorkflow_Web\server\bin\Debug\net10.0\package-lock.json
 C:\Users\clim\Documents\ServiceWorkflow_Web\server\bin\Debug\net10.0\package.json
+C:\Users\clim\Documents\ServiceWorkflow_Web\server\obj\Debug\net10.0\server.sourcelink.json

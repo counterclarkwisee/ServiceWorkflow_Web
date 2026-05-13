@@ -7,11 +7,19 @@ namespace server.Controllers;
 [Route("api/[controller]")]
 public class AppointmentsController : ControllerBase
 {
-    private readonly IAppointmentRepository _appointmentRepository;
+    private readonly IAppointmentRepository _repo;
 
     public AppointmentsController(IAppointmentRepository appointmentRepository)
     {
-        _appointmentRepository = appointmentRepository;
+        _repo = appointmentRepository;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        // This ensures the saLog object isn't null in the JSON response
+        var data = await _repo.GetAllAppointmentsAsync(); 
+        return Ok(data);
     }
 
     [HttpPost]
@@ -19,7 +27,7 @@ public class AppointmentsController : ControllerBase
     {
         appointment.status = "BOOKED";
         // Passing the category value from the frontend
-        var id = await _appointmentRepository.CreateAppointmentWithServiceAsync(appointment, appointment.service_category);
+        var id = await _repo.CreateAppointmentWithServiceAsync(appointment, appointment.service_category);
         return Ok(new { id, message = "Successfully Booked" });
     }
 }
