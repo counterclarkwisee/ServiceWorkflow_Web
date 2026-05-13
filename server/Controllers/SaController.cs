@@ -21,15 +21,25 @@ namespace server.Controllers
         [HttpPost("{id}/start")]
         public async Task<IActionResult> StartReceiving(string id)
         {
-            var success = await _repo.StartSaReceivingAsync(id);
-            return success ? Ok(new { message = "Started" }) : BadRequest();
+            // Change _repository to _repo to match your constructor
+            var success = await _repo.StartSaReceivingAsync(id); 
+            
+            // Ensure you return the status so the UI knows to flip the button
+            return success ? Ok(new { status = "Started" }) : BadRequest();
         }
 
         [HttpPut("{id}/end")]
-        public async Task<IActionResult> EndReceiving(string id)
+        public async Task<IActionResult> EndSa(string id)
         {
-            var success = await _repo.EndSaReceivingAsync(id);
-            return success ? Ok(new { message = "Finished" }) : NotFound();
+            // Changed _repository to _repo to match your constructor
+            var success = await _repo.EndSaReceivingAsync(id); 
+            if (success)
+            {
+                // Tell JobCon that SA is now Endorsed
+                await _repo.SyncJobConGate1Async(id, "SA", "Endorsed");
+                return Ok();
+            }
+            return BadRequest();
         }
     }
 }

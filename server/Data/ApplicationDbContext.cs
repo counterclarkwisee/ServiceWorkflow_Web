@@ -13,9 +13,8 @@ namespace server.Data
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<ChecklisterLog> ChecklisterLogs { get; set; }
         public DbSet<SaLog> SaLogs { get; set; }
-        
-        // CRITICAL: This must be named 'Services' to match the Repository call
         public DbSet<Service> Services { get; set; } 
+        public DbSet<JobconLog> JobconLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
