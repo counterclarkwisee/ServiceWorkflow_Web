@@ -130,34 +130,28 @@ public class AppointmentRepository : IAppointmentRepository
 
         return await _context.SaveChangesAsync() > 0;
     }
-    public async Task<bool> StartSaReceivingAsync(string appointmentId)
+    // Rename from StartReceivingLogAsync to StartSaReceivingAsync
+    public async Task<bool> StartSaReceivingAsync(string id)
     {
-        var log = await _context.SaLogs
-            .FirstOrDefaultAsync(l => l.appointment_id == appointmentId);
+        var existingLog = await _context.SaLogs.FirstOrDefaultAsync(l => l.appointment_id == id);
+        if (existingLog != null) return false;
 
-        if (log == null)
+        var newLog = new SaLog
         {
-            log = new SaLog
-            {
-                appointment_id = appointmentId,
-                receiving_status = "Started",
-                receiving_start = DateTime.Now
-            };
-            _context.SaLogs.Add(log);
-        }
-        else
-        {
-            log.receiving_status = "In-Progress";
-            log.receiving_start = DateTime.Now;
-        }
+            appointment_id = id,
+            receiving_status = "Started",
+            receiving_start = DateTime.Now
+        };
 
+        _context.SaLogs.Add(newLog); 
         return await _context.SaveChangesAsync() > 0;
     }
 
-    public async Task<bool> EndSaReceivingAsync(string appointmentId)
+    // Rename from EndReceivingLogAsync to EndSaReceivingAsync
+    public async Task<bool> EndSaReceivingAsync(string id)
     {
         var log = await _context.SaLogs
-            .FirstOrDefaultAsync(l => l.appointment_id == appointmentId);
+            .FirstOrDefaultAsync(l => l.appointment_id == id && l.receiving_end == null);
 
         if (log == null) return false;
 
