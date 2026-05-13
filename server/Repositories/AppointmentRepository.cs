@@ -17,6 +17,7 @@ public class AppointmentRepository : IAppointmentRepository
     public async Task<IEnumerable<Appointment>> GetAllAppointmentsAsync()
     {
         return await _context.Appointments
+            .Include(a => a.SaLog) // This is CRITICAL for the frontend to see the status
             .OrderByDescending(a => a.created_at)
             .ToListAsync();
     }

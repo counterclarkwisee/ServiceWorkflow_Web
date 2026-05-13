@@ -7,7 +7,7 @@ namespace server.Models;
 public class Appointment
 {
     [Key]
-    public string? appointment_id { get; set; }
+    public string? appointment_id { get; set; } = string.Empty;
     public DateTime? created_at { get; set; }
     public string? created_by { get; set; }
     public string? last_name { get; set; }
@@ -35,5 +35,6 @@ public class Appointment
     public DateTime? last_modified_at { get; set; }
     public string? last_modified_by { get; set; }
     public string? arrival_status { get; set; } 
+    public SaLog? SaLog { get; set; }
     public ChecklisterLog? ChecklisterLog { get; set; }
 }
