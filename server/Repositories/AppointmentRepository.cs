@@ -17,7 +17,8 @@ public class AppointmentRepository : IAppointmentRepository
     public async Task<IEnumerable<Appointment>> GetAllAppointmentsAsync()
     {
         return await _context.Appointments
-            .Include(a => a.SaLog) // CRITICAL: This allows the UI to see the current SA status
+            .Include(a => a.SaLog)          // For SA Dashboard
+            .Include(a => a.ChecklisterLog) // For Checklister Dashboard
             .OrderByDescending(a => a.created_at)
             .ToListAsync();
     }
@@ -121,7 +122,7 @@ public class AppointmentRepository : IAppointmentRepository
         var newLog = new ChecklisterLog
         {
             appointment_id = id,
-            preservice_status = "Started",
+            preservice_status = "STARTED",
             preservice_start = DateTime.Now
         };
 
@@ -131,15 +132,36 @@ public class AppointmentRepository : IAppointmentRepository
 
     public async Task<bool> EndPreServiceLogAsync(string id)
     {
+        // 1. Locate the specific log that hasn't ended yet
         var log = await _context.ChecklisterLogs
             .FirstOrDefaultAsync(l => l.appointment_id == id && l.preservice_end == null);
 
         if (log == null) return false;
 
-        log.preservice_status = "Finished";
+        // 2. Update the Checklister Log status
+        log.preservice_status = "FINISHED";
         log.preservice_end = DateTime.Now;
 
-        return await _context.SaveChangesAsync() > 0;
+        // 3. Save the Checklister Log update FIRST
+        // This ensures your primary data is safe before we try the complex sync logic
+        var saved = await _context.SaveChangesAsync() > 0;
+
+        if (saved)
+        {
+            try 
+            {
+                // 4. Update the Gate 1 tracking table
+                // We wrap this in a try-catch so a sync failure doesn't crash the whole UI
+                await SyncJobConGate1Async(id, "Checklister", "WAITING RO");
+            }
+            catch (Exception ex)
+            {
+                // Log the error for debugging (e.g., table name mismatches)
+                Console.WriteLine($"Gate 1 Sync failed for {id}: {ex.Message}");
+            }
+        }
+
+        return saved; // Returns true to the UI because the log itself was saved
     }
 
     public async Task<bool> StartSaReceivingAsync(string id)
@@ -150,7 +172,7 @@ public class AppointmentRepository : IAppointmentRepository
         var newLog = new SaLog
         {
             appointment_id = id,
-            receiving_status = "Started",
+            receiving_status = "STARTED",
             receiving_start = DateTime.Now
         };
 
@@ -160,15 +182,33 @@ public class AppointmentRepository : IAppointmentRepository
 
     public async Task<bool> EndSaReceivingAsync(string id)
     {
+        // 1. Locate the specific SA log that hasn't ended yet
         var log = await _context.SaLogs
             .FirstOrDefaultAsync(l => l.appointment_id == id && l.receiving_end == null);
 
         if (log == null) return false;
 
-        log.receiving_status = "Finished";
+        // 2. Update the local SA Log status
+        log.receiving_status = "FINISHED"; // Matches your React "Complete" check
         log.receiving_end = DateTime.Now;
 
-        return await _context.SaveChangesAsync() > 0;
+        // 3. Save the SA Log update FIRST
+        var saved = await _context.SaveChangesAsync() > 0;
+
+        if (saved)
+            {
+                try 
+                {
+                    await SyncJobConGate1Async(id, "SA", "ENDORSED");
+                }
+                catch (Exception ex)
+                {
+                    // Log this error, but don't stop the UI from thinking it worked
+                    Console.WriteLine($"Gate Sync Failed: {ex.Message}");
+                }
+            }
+
+        return saved;
     }
 
     public async Task UpdateJobConStatusAsync(string appointmentId)
@@ -178,10 +218,10 @@ public class AppointmentRepository : IAppointmentRepository
 
         if (log != null && log.sa_status == "Endorsed" && log.checklister_status == "WAITING RO")
         {
-            log.workshop_status = "PENDING"; 
+            log.workshop_status = "ENDORSED"; 
 
             var appointment = await _context.Appointments.FindAsync(appointmentId);
-            if (appointment != null) appointment.status = "Endorsed";
+            if (appointment != null) appointment.status = "ENDORSED";
 
             await _context.SaveChangesAsync();
         }
@@ -189,20 +229,19 @@ public class AppointmentRepository : IAppointmentRepository
 
     public async Task SyncJobConGate1Async(string appointmentId, string type, string value)
     {
-        var log = await _context.JobconLogs
-            .FirstOrDefaultAsync(l => l.appointment_id == appointmentId);
-
+        var log = await _context.JobconLogs.FirstOrDefaultAsync(l => l.appointment_id == appointmentId);
         if (log == null) return;
 
         if (type == "SA") log.sa_status = value;
-        if (type == "Checklister") log.checklister_status = value;
+        else if (type == "Checklister") log.checklister_status = value;
 
-        if (log.sa_status == "Endorsed" && log.checklister_status == "WAITING RO")
+        // Now this check will succeed because both are "ENDORSED" and "WAITING RO"
+        if (log.sa_status?.ToUpper() == "ENDORSED" && log.checklister_status?.ToUpper() == "WAITING RO")
         {
-            log.workshop_status = "READY";
+            log.workshop_status = "ENDORSED";
             
             var app = await _context.Appointments.FindAsync(appointmentId);
-            if (app != null) app.status = "Endorsed";
+            if (app != null) app.status = "ENDORSED";
         }
 
         await _context.SaveChangesAsync();

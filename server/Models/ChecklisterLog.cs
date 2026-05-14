@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace server.Models;
-
+[Table("checklister_logs")]
 public class ChecklisterLog
 {
     [Key]

@@ -25,10 +25,14 @@ public class AppointmentsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateAppointment([FromBody] Appointment appointment)
     {
-        appointment.status = "BOOKED";
-        // Passing the category value from the frontend
-        var id = await _repo.CreateAppointmentWithServiceAsync(appointment, appointment.service_category);
-        return Ok(new { id, message = "Successfully Booked" });
+        var generatedId = await _repo.CreateAppointmentWithServiceAsync(appointment, appointment.service_category);
+
+        // FIX: The key must be 'appointmentId' to match your React code
+        return Ok(new 
+        { 
+            appointmentId = generatedId, 
+            message = "Successfully Booked" 
+        });
     }
 
     [HttpGet("endorsed")]
