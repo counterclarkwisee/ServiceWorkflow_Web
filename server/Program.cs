@@ -19,6 +19,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IChecklisterRepository, ChecklisterRepository>();
 builder.Services.AddScoped<ISaRepository, SaRepository>();
+builder.Services.AddScoped<IReceptionRepository, ReceptionRepository>();
 
 // 4. CORS
 builder.Services.AddCors(options => {

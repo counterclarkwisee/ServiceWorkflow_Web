@@ -25,9 +25,12 @@ public class AppointmentsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateAppointment([FromBody] Appointment appointment)
     {
-        var generatedId = await _repo.CreateAppointmentWithServiceAsync(appointment, appointment.service_category);
+        // Handle the null warning for serviceCategory
+        var category = appointment.service_category ?? "General Service";
+        
+        var generatedId = await _repo.CreateAppointmentWithServiceAsync(appointment, category);
 
-        // FIX: Return 'appointmentId' as the key to match your React code
+        // CRITICAL: The key must be 'appointmentId' to fix the 'undefined' alert
         return Ok(new 
         { 
             appointmentId = generatedId, 

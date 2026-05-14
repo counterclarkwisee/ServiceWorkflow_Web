@@ -1,34 +1,26 @@
-using Microsoft.AspNetCore.Mvc; // Fixes IActionResult, HttpGet, HttpPatch
-using server.Interfaces;      // Fixes IAppointmentRepository
+using Microsoft.AspNetCore.Mvc; // Fixes ControllerBase, [ApiController], [Route]
+using server.Interfaces;        // Fixes IReceptionRepository
 using server.Models;
-
-namespace server.Controllers;
-
 
 [ApiController]
 [Route("api/[controller]")]
 public class ReceptionController : ControllerBase
 {
-    private readonly IAppointmentRepository _appointmentRepository;
+    private readonly IReceptionRepository _repo;
 
-    public ReceptionController(IAppointmentRepository appointmentRepository)
+    public ReceptionController(IReceptionRepository repo) => _repo = repo;
+
+    [HttpGet("today")]
+    public async Task<IActionResult> GetToday()
     {
-        _appointmentRepository = appointmentRepository;
+        return Ok(await _repo.GetTodayAppointmentsAsync());
     }
 
-    [HttpGet("booked")]
-    public async Task<IActionResult> GetBooked()
+    [HttpPost("arrive/{id}")]
+    public async Task<IActionResult> Arrive(string id)
     {
-        var appointments = await _appointmentRepository.GetAllAppointmentsAsync();
-        var booked = appointments.Where(a => a.status == "BOOKED");
-        return Ok(booked);
-    }
-
-    [HttpPatch("{id}/arrive")]
-    public async Task<IActionResult> MarkArrived(string id)
-    {
-        var success = await _appointmentRepository.UpdateAppointmentStatusAsync(id, "ARRIVED");
-        if (!success) return NotFound();
-        return Ok(new { message = "Status updated to ARRIVED" });
+        var success = await _repo.MarkAsArrivedAsync(id);
+        if (!success) return BadRequest("Could not update arrival status.");
+        return Ok(new { message = "Vehicle marked as arrived" });
     }
 }
