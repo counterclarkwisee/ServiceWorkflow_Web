@@ -7,10 +7,11 @@ namespace server.Controllers
     [Route("api/[controller]")]
     public class SaController : ControllerBase
     {
-        private readonly IAppointmentRepository _repo;
+        private readonly ISaRepository _repo;
 
-        public SaController(IAppointmentRepository repo) => _repo = repo;
+        public SaController(ISaRepository repo) => _repo = repo;
 
+        // 1. Get all appointments for the SA Dashboard
         [HttpGet]
         public async Task<IActionResult> GetAppointments()
         {
@@ -18,28 +19,29 @@ namespace server.Controllers
             return Ok(appointments);
         }
 
+        // 2. Start Service Advisor Receiving
         [HttpPost("{id}/start")]
         public async Task<IActionResult> StartReceiving(string id)
         {
-            // Change _repository to _repo to match your constructor
             var success = await _repo.StartSaReceivingAsync(id); 
-            
-            // Ensure you return the status so the UI knows to flip the button
-            return success ? Ok(new { status = "Started" }) : BadRequest();
+            return success ? Ok(new { status = "Started" }) : BadRequest("Could not start session.");
         }
 
-        [HttpPut("{id}/end")]
+        // 3. End Service Advisor Receiving
+        [HttpPost("{id}/end")] // Changed to HttpPost to match your recent pattern
         public async Task<IActionResult> EndSa(string id)
         {
-            // Changed _repository to _repo to match your constructor
+            // FIX: Removed manual SyncJobConGate1Async call.
+            // Your SaRepository.EndSaReceivingAsync already calls the sync logic internally.
             var success = await _repo.EndSaReceivingAsync(id); 
+            
             if (success)
             {
-                // Tell JobCon that SA is now Endorsed
-                await _repo.SyncJobConGate1Async(id, "SA", "Endorsed");
-                return Ok();
+                return Ok(new { status = "Finished" });
             }
-            return BadRequest();
+            
+            // This prevents the "Workflow Error" popup in your React UI
+            return BadRequest("Workflow Error: Could not end SA session.");
         }
     }
 }

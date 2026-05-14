@@ -17,6 +17,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // 3. SOLID: Dependency Injection
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<IChecklisterRepository, ChecklisterRepository>();
+builder.Services.AddScoped<ISaRepository, SaRepository>();
 
 // 4. CORS
 builder.Services.AddCors(options => {

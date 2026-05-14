@@ -27,7 +27,7 @@ public class AppointmentsController : ControllerBase
     {
         var generatedId = await _repo.CreateAppointmentWithServiceAsync(appointment, appointment.service_category);
 
-        // FIX: The key must be 'appointmentId' to match your React code
+        // FIX: Return 'appointmentId' as the key to match your React code
         return Ok(new 
         { 
             appointmentId = generatedId, 

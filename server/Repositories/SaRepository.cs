@@ -1,0 +1,55 @@
+using server.Data;
+using server.Interfaces;
+using server.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace server.Repositories;
+public class SaRepository : ISaRepository {
+    private readonly ApplicationDbContext _context;
+    private readonly IAppointmentRepository _appointmentRepo;
+
+    public SaRepository(ApplicationDbContext context, IAppointmentRepository appointmentRepo) {
+        _context = context;
+        _appointmentRepo = appointmentRepo;
+    }
+
+    public async Task<IEnumerable<Appointment>> GetAllAppointmentsAsync()
+    {
+        return await _context.Appointments
+            .Include(a => a.SaLog)
+            .OrderByDescending(a => a.created_at)
+            .ToListAsync();
+    }
+
+    public async Task<bool> StartSaReceivingAsync(string id) {
+        if (await _context.SaLogs.AnyAsync(l => l.appointment_id == id)) return false;
+
+        var newLog = new SaLog {
+            appointment_id = id,
+            receiving_status = "STARTED",
+            receiving_start = DateTime.Now
+        };
+        _context.SaLogs.Add(newLog);
+        return await _context.SaveChangesAsync() > 0;
+    }
+
+    public async Task<bool> EndSaReceivingAsync(string id) {
+        var log = await _context.SaLogs
+            .FirstOrDefaultAsync(l => l.appointment_id == id && l.receiving_end == null);
+
+        if (log == null) return false;
+
+        log.receiving_status = "FINISHED";
+        log.receiving_end = DateTime.Now;
+
+        var saved = await _context.SaveChangesAsync() > 0;
+        if (saved) {
+            try {
+                await _appointmentRepo.SyncJobConGate1Async(id, "SA", "ENDORSED");
+            } catch (Exception ex) {
+                Console.WriteLine($"Sync failed: {ex.Message}");
+            }
+        }
+        return saved;
+    }
+}

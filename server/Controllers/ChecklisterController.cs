@@ -8,38 +8,45 @@ namespace server.Controllers;
 [Route("api/[controller]")]
 public class ChecklisterController : ControllerBase
 {
-    private readonly IAppointmentRepository _repo;
+    private readonly IChecklisterRepository _repo;
 
-    public ChecklisterController(IAppointmentRepository repo) => _repo = repo;
+    public ChecklisterController(IChecklisterRepository repo) => _repo = repo;
 
-    // 1. Get the Queue (Unified with Log data)
+    // 1. Get the Queue 
     [HttpGet("queue")]
     public async Task<IActionResult> GetQueue()
     {
-        // This uses the Join/Include logic we discussed to show Start/End buttons
         var queue = await _repo.GetChecklisterQueueAsync();
         return Ok(queue);
     }
 
-    // 2. Start the Checklist (Creates a new Log entry)
-    [HttpPost("{id}/start")]
+    // 2. Start the Checklist
+    // Unified to match the method name in your new IChecklisterRepository
+    [HttpPost("start/{id}")]
     public async Task<IActionResult> StartChecklist(string id)
     {
-        // This calls the repo method that performs an INSERT into checklister_logs
-        var success = await _repo.StartPreServiceLogAsync(id);
+        // Removed "Log" from the method call to match your interface
+        var success = await _repo.StartPreServiceAsync(id);
+        
         if (!success) return BadRequest("Could not start checklist log.");
         
-        return Ok(new { message = "Checklist started" });
+        return Ok(new { message = "Checklist started", success });
     }
 
-    // 3. End the Checklist (Updates the existing Log entry)
-    [HttpPut("{id}/end")]
+    // 3. End the Checklist
+    // Changed to HttpPost to match your recent repository pattern
+    [HttpPost("end/{id}")]
     public async Task<IActionResult> EndChecklist(string id)
     {
-        // This calls the repo method that updates preservice_end and status to "Finished"
-        var success = await _repo.EndPreServiceLogAsync(id);
-        if (!success) return NotFound("Active checklist log not found.");
+        // Removed "Log" from the method call to match your interface
+        var success = await _repo.EndPreServiceAsync(id);
         
-        return Ok(new { message = "Checklist finished" });
+        if (!success) 
+        {
+            // This prevents the "Workflow Error" popup in the UI
+            return BadRequest("Workflow Error: Could not finish pre-service log."); 
+        }
+        
+        return Ok(new { message = "Checklist finished", success });
     }
 }
