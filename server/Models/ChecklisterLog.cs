@@ -8,7 +8,7 @@ public class ChecklisterLog
 {
     [Key]
     public int checklister_logs_id { get; set; }
-    public string appointment_id { get; set; }
+    public string appointment_id { get; set; } = string.Empty;
 
     public string? preservice_status { get; set; }
     public DateTime? preservice_start { get; set; }

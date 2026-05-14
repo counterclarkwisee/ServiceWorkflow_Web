@@ -62,9 +62,23 @@ public class SaRepository : ISaRepository {
 
         if (log == null) return false;
 
+        // 1. Update the status for the Service Advisor
         log.sa_status = "Endorsed";
-        log.workshop_status = "PENDING"; 
 
+        // 2. Evaluate Gate 1 Logic
+        // If BOTH the SA is finished AND the Checklister is done, move to ENDORSED
+        if (log.sa_status == "Endorsed" && log.checklister_status == "WAITING RO")
+        {
+            log.workshop_status = "ENDORSED";
+        }
+        else
+        {
+            // Keep as PENDING if the Checklister hasn't finished yet
+            log.workshop_status = "PENDING"; 
+        }
+
+        // 3. Save Changes
+        // Strictly avoided 'updated_at' to prevent MySqlException based on your schema
         return await _context.SaveChangesAsync() > 0;
     }
 }
