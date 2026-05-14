@@ -57,28 +57,36 @@ public class SaRepository : ISaRepository {
 
     public async Task<bool> SyncJobConGate1Async(string appointmentId)
     {
+        // 1. Fetch both the JobCon Log and the Appointment record
         var log = await _context.JobconLogs
             .FirstOrDefaultAsync(j => j.appointment_id == appointmentId);
+            
+        var appointment = await _context.Appointments
+            .FirstOrDefaultAsync(a => a.appointment_id == appointmentId);
 
-        if (log == null) return false;
+        if (log == null || appointment == null) return false;
 
-        // 1. Update the status for the Service Advisor
+        // 2. Update the status for the Service Advisor
         log.sa_status = "Endorsed";
 
-        // 2. Evaluate Gate 1 Logic
+        // 3. Evaluate Gate 1 Logic
         // If BOTH the SA is finished AND the Checklister is done, move to ENDORSED
         if (log.sa_status == "Endorsed" && log.checklister_status == "WAITING RO")
         {
+            // Update JobCon table status
             log.workshop_status = "ENDORSED";
+            
+            // Update the master Appointment table status as requested
+            appointment.status = "ENDORSED";
         }
         else
         {
-            // Keep as PENDING if the Checklister hasn't finished yet
+            // Keep as PENDING if the Gate 1 requirements aren't fully met
             log.workshop_status = "PENDING"; 
         }
 
-        // 3. Save Changes
-        // Strictly avoided 'updated_at' to prevent MySqlException based on your schema
+        // 4. Save Changes
+        // Strictly avoiding 'updated_at' to prevent MySqlException
         return await _context.SaveChangesAsync() > 0;
     }
 }

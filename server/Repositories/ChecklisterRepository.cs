@@ -56,29 +56,36 @@ public class ChecklisterRepository : IChecklisterRepository {
     
     public async Task<bool> SyncJobConGate1Async(string appointmentId)
     {
+        // 1. Fetch both the JobCon Log and the Appointment record
         var log = await _context.JobconLogs
             .FirstOrDefaultAsync(j => j.appointment_id == appointmentId);
 
-        if (log == null) return false;
+        var appointment = await _context.Appointments
+            .FirstOrDefaultAsync(a => a.appointment_id == appointmentId);
 
-        // 1. Update the status for this specific repository call
-        // If this is called from ChecklisterRepository:
+        if (log == null || appointment == null) return false;
+
+        // 2. Update the status for the Checklister
         log.checklister_status = "WAITING RO";
 
-        // 2. Evaluate Gate 1 Logic
+        // 3. Evaluate Gate 1 Logic
         // Workshop status should only be "ENDORSED" if both criteria are met
         if (log.sa_status == "Endorsed" && log.checklister_status == "WAITING RO")
         {
+            // Update JobCon table
             log.workshop_status = "ENDORSED";
+
+            // Update master Appointment table
+            appointment.status = "ENDORSED";
         }
         else
         {
-            // Keep as PENDING if one side is still incomplete
+            // Keep as PENDING if the SA hasn't finished their endorsed status yet
             log.workshop_status = "PENDING"; 
         }
 
-        // 3. Save Changes
-        // Strictly avoiding 'updated_at' to prevent MySqlException
+        // 4. Save Changes
+        // Strictly avoiding 'updated_at' to maintain SQL schema integrity
         return await _context.SaveChangesAsync() > 0;
     }
 }
