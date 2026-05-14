@@ -15,6 +15,7 @@ namespace server.Data
         public DbSet<SaLog> SaLogs { get; set; }
         public DbSet<Service> Services { get; set; } 
         public DbSet<JobconLog> JobconLogs { get; set; }
+        public DbSet<Bays> Bays { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,6 +27,8 @@ namespace server.Data
             // FIX: Match the property name to 'service_id' instead of 'id'
             modelBuilder.Entity<Service>().ToTable("services").HasKey(s => s.service_id);
             modelBuilder.Entity<ChecklisterLog>().ToTable("checklister_logs").HasKey(c => c.checklister_logs_id);
+            modelBuilder.Entity<Bays>().ToTable("bays").HasKey(b => b.bay_id);
+            
         }
     }
 }

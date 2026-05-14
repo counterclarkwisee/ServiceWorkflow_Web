@@ -5,8 +5,13 @@ using server.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Add Services
-builder.Services.AddControllers(); // Required for the new Controller to work
+// 1. Add Services & Configure JSON Naming (PascalCase preservation)
+builder.Services.AddControllers()
+    .AddJsonOptions(options => {
+        // This ensures the JSON keys match your C# DTO property names exactly (e.g., AppointmentId)
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
+
 builder.Services.AddOpenApi();
 
 // 2. Database Connection
@@ -20,6 +25,7 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IChecklisterRepository, ChecklisterRepository>();
 builder.Services.AddScoped<ISaRepository, SaRepository>();
 builder.Services.AddScoped<IReceptionRepository, ReceptionRepository>();
+builder.Services.AddScoped<IJobControllerRepository, JobControllerRepository>();
 
 // 4. CORS
 builder.Services.AddCors(options => {
@@ -30,7 +36,6 @@ builder.Services.AddCors(options => {
 });
 
 var app = builder.Build();
-app.UseCors();
 
 // 5. Middleware Pipeline
 if (app.Environment.IsDevelopment())
@@ -38,9 +43,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseCors("AllowReactApp");
+// Ensure CORS is called before MapControllers
+app.UseCors();
+
 app.UseHttpsRedirection();
 
-app.MapControllers(); // This tells the app to look into the Controllers folder
+app.MapControllers(); 
 
 app.Run();

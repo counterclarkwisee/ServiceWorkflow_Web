@@ -18,4 +18,5 @@ public class JobconLog
     public string? sa_status { get; set; } // Nullable to match SQL
     public string? checklister_status { get; set; } // Nullable to match SQL
     public string? parts_status { get; set; } // Nullable to match SQL
+    public int? bay_id { get; set; }
 }

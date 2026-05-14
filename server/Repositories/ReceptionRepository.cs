@@ -16,12 +16,13 @@ public class ReceptionRepository : IReceptionRepository
 
     public async Task<IEnumerable<Appointment>> GetTodayAppointmentsAsync()
     {
-        var today = DateTime.Today;
+        // Use DateOnly to match your database column type for appointment_date
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        
         return await _context.Appointments
-            // Use .HasValue and .Value.Date to resolve CS1061
-            .Where(a => a.created_at.HasValue && a.created_at.Value.Date == today)
+            .Where(a => a.appointment_date == today) // Filter by the actual visit date
             .Where(a => a.status == "BOOKED" || a.status == "ARRIVED" || a.status == "ENDORSED")
-            .OrderBy(a => a.created_at)
+            .OrderBy(a => a.scheduled_arrival_time) // Order by their time slot
             .ToListAsync();
     }
 
