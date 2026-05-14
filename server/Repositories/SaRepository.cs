@@ -45,11 +45,26 @@ public class SaRepository : ISaRepository {
         var saved = await _context.SaveChangesAsync() > 0;
         if (saved) {
             try {
-                await _appointmentRepo.SyncJobConGate1Async(id, "SA", "ENDORSED");
+                // FIX: Call the local method you defined below, 
+                // instead of calling the appointmentRepo with the wrong parameters.
+                await this.SyncJobConGate1Async(id); 
             } catch (Exception ex) {
                 Console.WriteLine($"Sync failed: {ex.Message}");
             }
         }
         return saved;
+    }
+
+    public async Task<bool> SyncJobConGate1Async(string appointmentId)
+    {
+        var log = await _context.JobconLogs
+            .FirstOrDefaultAsync(j => j.appointment_id == appointmentId);
+
+        if (log == null) return false;
+
+        log.sa_status = "Endorsed";
+        log.workshop_status = "PENDING"; 
+
+        return await _context.SaveChangesAsync() > 0;
     }
 }

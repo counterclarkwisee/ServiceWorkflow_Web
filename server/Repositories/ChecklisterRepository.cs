@@ -54,4 +54,17 @@ public class ChecklisterRepository : IChecklisterRepository {
         }
         return saved;
     }
+    
+    public async Task<bool> SyncJobConGate1Async(string appointmentId)
+    {
+        var log = await _context.JobconLogs
+            .FirstOrDefaultAsync(j => j.appointment_id == appointmentId);
+
+        if (log == null) return false;
+
+        log.checklister_status = "WAITING RO";
+        log.workshop_status = "PENDING"; 
+
+        return await _context.SaveChangesAsync() > 0;
+    }
 }

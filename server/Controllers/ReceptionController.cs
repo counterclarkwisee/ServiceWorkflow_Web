@@ -11,9 +11,10 @@ public class ReceptionController : ControllerBase
     public ReceptionController(IReceptionRepository repo) => _repo = repo;
 
     [HttpGet("today")]
-    public async Task<IActionResult> GetToday()
+    public async Task<IActionResult> GetToday() 
     {
-        return Ok(await _repo.GetTodayAppointmentsAsync());
+        var result = await _repo.GetTodayAppointmentsAsync();
+        return Ok(result);
     }
 
     [HttpPost("arrive/{id}")]
