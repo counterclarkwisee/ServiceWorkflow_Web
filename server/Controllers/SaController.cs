@@ -20,12 +20,22 @@ namespace server.Controllers
         }
 
         // 2. Start Service Advisor Receiving
-        [HttpPost("{id}/start")]
-        public async Task<IActionResult> StartReceiving(string id)
+    [HttpPost("{id}/start")]
+    public async Task<IActionResult> StartSaReceiving(string id)
+    {
+        // Log the ID to your console to ensure it's arriving correctly
+        Console.WriteLine($"Attempting to start SA for ID: {id}");
+        
+        var result = await _repo.StartSaReceivingAsync(id);
+        
+        if (!result) 
         {
-            var success = await _repo.StartSaReceivingAsync(id); 
-            return success ? Ok(new { status = "Started" }) : BadRequest("Could not start session.");
+            // This triggers the "Could not start session" alert in React
+            return BadRequest("Could not start session."); 
         }
+        
+        return Ok();
+    }
 
         // 3. End Service Advisor Receiving
         [HttpPost("{id}/end")] // Changed to HttpPost to match your recent pattern

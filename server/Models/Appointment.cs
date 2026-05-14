@@ -35,6 +35,6 @@ public class Appointment
     public DateTime? last_modified_at { get; set; }
     public string? last_modified_by { get; set; }
     public string? arrival_status { get; set; } 
-    public SaLog? SaLog { get; set; }
+    public SaLog? sa_log { get; set; }
     public ChecklisterLog? ChecklisterLog { get; set; }
 }

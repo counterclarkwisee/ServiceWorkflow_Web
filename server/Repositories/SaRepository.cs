@@ -4,32 +4,49 @@ using server.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace server.Repositories;
+
 public class SaRepository : ISaRepository {
     private readonly ApplicationDbContext _context;
-    private readonly IAppointmentRepository _appointmentRepo;
 
-    public SaRepository(ApplicationDbContext context, IAppointmentRepository appointmentRepo) {
+    // ALIGNED: Now strictly using ISaRepository context
+    public SaRepository(ApplicationDbContext context) {
         _context = context;
-        _appointmentRepo = appointmentRepo;
     }
 
     public async Task<IEnumerable<Appointment>> GetAllAppointmentsAsync()
     {
         return await _context.Appointments
-            .Include(a => a.SaLog)
+            // MATCH: Using lowercase 'sa_log' as defined in your corrected Model
+            .Include(a => a.sa_log) 
             .OrderByDescending(a => a.created_at)
             .ToListAsync();
     }
 
-    public async Task<bool> StartSaReceivingAsync(string id) {
-        if (await _context.SaLogs.AnyAsync(l => l.appointment_id == id)) return false;
+    public async Task<bool> StartSaReceivingAsync(string id)
+    {
+        var appointment = await _context.Appointments
+            .Include(a => a.sa_log) 
+            .FirstOrDefaultAsync(a => a.appointment_id == id);
 
-        var newLog = new SaLog {
-            appointment_id = id,
-            receiving_status = "STARTED",
-            receiving_start = DateTime.Now
-        };
-        _context.SaLogs.Add(newLog);
+        if (appointment == null) return false;
+
+        if (appointment.sa_log == null)
+        {
+            appointment.sa_log = new SaLog 
+            { 
+                appointment_id = id,
+                receiving_status = "STARTED",
+                receiving_start = DateTime.Now 
+            };
+            _context.SaLogs.Add(appointment.sa_log);
+        }
+        else
+        {
+            appointment.sa_log.receiving_status = "STARTED";
+        }
+
+        appointment.status = "ARRIVED"; 
+
         return await _context.SaveChangesAsync() > 0;
     }
 
@@ -45,8 +62,7 @@ public class SaRepository : ISaRepository {
         var saved = await _context.SaveChangesAsync() > 0;
         if (saved) {
             try {
-                // FIX: Call the local method you defined below, 
-                // instead of calling the appointmentRepo with the wrong parameters.
+                // Internal logic to sync with Job Control Gate 1
                 await this.SyncJobConGate1Async(id); 
             } catch (Exception ex) {
                 Console.WriteLine($"Sync failed: {ex.Message}");
@@ -57,7 +73,6 @@ public class SaRepository : ISaRepository {
 
     public async Task<bool> SyncJobConGate1Async(string appointmentId)
     {
-        // 1. Fetch both the JobCon Log and the Appointment record
         var log = await _context.JobconLogs
             .FirstOrDefaultAsync(j => j.appointment_id == appointmentId);
             
@@ -66,27 +81,19 @@ public class SaRepository : ISaRepository {
 
         if (log == null || appointment == null) return false;
 
-        // 2. Update the status for the Service Advisor
         log.sa_status = "Endorsed";
 
-        // 3. Evaluate Gate 1 Logic
-        // If BOTH the SA is finished AND the Checklister is done, move to ENDORSED
+        // Logic: Move to ENDORSED only if SA is finished AND Checklister is done
         if (log.sa_status == "Endorsed" && log.checklister_status == "WAITING RO")
         {
-            // Update JobCon table status
             log.workshop_status = "ENDORSED";
-            
-            // Update the master Appointment table status as requested
             appointment.status = "ENDORSED";
         }
         else
         {
-            // Keep as PENDING if the Gate 1 requirements aren't fully met
             log.workshop_status = "PENDING"; 
         }
 
-        // 4. Save Changes
-        // Strictly avoiding 'updated_at' to prevent MySqlException
         return await _context.SaveChangesAsync() > 0;
     }
 }

@@ -17,7 +17,7 @@ public class AppointmentRepository : IAppointmentRepository
     public async Task<IEnumerable<Appointment>> GetAllAppointmentsAsync()
     {
         return await _context.Appointments
-            .Include(a => a.SaLog)          // For SA Dashboard
+            .Include(a => a.sa_log)          // For SA Dashboard
             .Include(a => a.ChecklisterLog) // For Checklister Dashboard
             .OrderByDescending(a => a.created_at)
             .ToListAsync();
